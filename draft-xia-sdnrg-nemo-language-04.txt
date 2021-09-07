@@ -1,0 +1,1297 @@
+SDNRG                                                        Y. Xia, Ed.
+Internet-Draft                                             S. Jiang, Ed.
+Intended status: Standards Track                            T. Zhou, Ed.
+Expires: October 16, 2016                                       S. Hares
+                                                            Y.Zhang, Ed.
+                                            Huawei Technologies Co., Ltd
+                                                        April 14, 2016
+
+
+                    NEMO (NEtwork MOdeling) Language
+                    draft-xia-sdnrg-nemo-language-04
+
+Abstract
+
+   The North-Bound Interface (NBI), located between the control plane
+   and the applications, is essential to enable the application
+   innovations and nourish the eco-system of SDN.
+
+   While most of the NBIs are provided in the form of API, this document
+   proposes the NEtwork MOdeling (NEMO) language which is intent based
+   interface with novel language fashion.  Concept, model and syntax are
+   introduced in the document.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on April 16, 2016.
+
+Copyright Notice
+
+   Copyright (c) 2015 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+
+
+
+Xia, et al.              Expires April 16, 2016                 [Page 1]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   3
+   3.  Requirements for the Intent Based NBI Language  . . . . . . .   4
+   4.  Related work  . . . . . . . . . . . . . . . . . . . . . . . .   5
+   5.  The NEMO Language Specifications  . . . . . . . . . . . . . .   6
+     5.1.  Network Model of the NEMO Language  . . . . . . . . . . .   6
+     5.2.  Notation  . . . . . . . . . . . . . . . . . . . . . . . .   7
+     5.3.  NEMO Language Overview  . . . . . . . . . . . . . . . . .   8
+     5.4.  Model Definition  . . . . . . . . . . . . . . . . . . . .   9
+       5.4.1.  Data Types  . . . . . . . . . . . . . . . . . . . . .   9
+       5.4.2.  Model Definition and Description Statement  . . . . .  10
+     5.5.  Resource Access Statements  . . . . . . . . . . . . . . .  12
+       5.5.1.  CustomerFacingNode Operations . . . . . . . . . . . .  12
+       5.5.2.  Connection Operations . . . . . . . . . . . . . . . .  13
+       5.5.3.  ServiceFlowFlow Operations  . . . . . . . . . . . . .  14
+     5.6.  Behavior Statements . . . . . . . . . . . . . . . . . . .  15
+       5.6.1.  Query Behavior  . . . . . . . . . . . . . . . . . . .  16
+       5.6.2.  Operation Behavior  . . . . . . . . . . . . . . . . .  16
+       5.6.3.  Notification Behavior . . . . . . . . . . . . . . . .  19
+     5.7.  Transaction Statements  . . . . . . . . . . . . . . . . .  20
+   6.  The NEMO Language Examples  . . . . . . . . . . . . . . . . .  20
+   7.  Security Considerations . . . . . . . . . . . . . . . . . . .  21
+   8.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  21
+   9.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  22
+   10. Informative References  . . . . . . . . . . . . . . . . . . .  22
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  23
+
+1.  Introduction
+
+   While SDN (Software Defined Network) is becoming one of the most
+   important directions of network evolution, the essence of SDN is to
+   make the network more flexible and easy to use.  The North-Bound
+   Interface (NBI), located between the control plane and the
+   applications, is essential to enable the application innovations and
+   nourish the eco-system of SDN by abstracting the network
+   capabilities/information and opening the abstract/logic network to
+   applications.
+
+   The NBI is usually provided in the form of API (Application
+   Programming Interface).  Different vendors provide self-defined API
+
+
+
+Xia, et al.              Expires April 16, 2016                 [Page 2]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+   sets.  Each API set, such as OnePK from Cisco and OPS from Huawei,
+   often contains hundreds of specific APIs.  Diverse APIs without
+   consistent style are hard to remember and use, and nearly impossible
+   to be standardized.
+
+   In addition, most of those APIs are designed by network domain
+   experts, who are used to thinking from the network system
+   perspective.  The interface designer does not know how the users will
+   use the device and exposes information details as much as possible.
+   It enables better control of devices, but leaves huge burden of
+   selecting useful information to users without well training.  Since
+   the NBI is used by network users, a more appropriate design is to
+   express user intent and abstract the network from the top down.
+
+   To implement such an NBI design, we can learn from the successful
+   case of SQL (Structured Query Language), which simplified the
+   complicated data operation to a unified and intuitive way in the form
+   of language.  Applications do not care about the way of data storage
+   and data operation, but to describe the demand for the data storage
+   and operation and then get the result.  As a data domain DSL, SQL is
+   simple and intuitive, and can be embedded in applications.  So what
+   we need for the network NBI is a set of "network domain SQL".
+   [I-D.xia-sdnrg-service-description-language] describe the
+   requirements for a service description language and the design
+   considerations.
+
+   This document will introduce an intent based NBI with novel language
+   fashion.
+
+2.  Terminology
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   [RFC2119] when they appear in ALL CAPS.  When these words are not in
+   ALL CAPS (such as "should" or "Should"), they have their usual
+   English meanings, and are not to be interpreted as [RFC2119] key
+   words.
+
+   Network service  also "service" for short, is the service logic that
+        contains network operation requirements;
+
+   Network APP  also "APP" for short, is the application to implement
+        the network service;
+
+   Network user  also "user" for short, is the network administrator or
+        operator.
+
+
+
+
+Xia, et al.              Expires April 16, 2016                 [Page 3]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+3.  Requirements for the Intent Based NBI Language
+
+   An intent based NBI language design contains following features:
+
+   o  Express user intent
+
+      To simplify the operation, applications or users can use the NBI
+      directly to describe their requirements for the network without
+      taking care of the implementation.  All the parameters without
+      user concern will be concealed by the NBI.
+
+   o  Platform independent
+
+      With the NBI, the application or user can description of network
+      demand in a generic way, so that any platform or system can get
+      the identical knowledge and consequently execute to the same
+      result.  Any low-level and device/vendor specific configurations
+      and dependencies should be avoided.
+
+   o  Intuitive Domain Specific Language (DSL) for network
+
+      The expression of the DSL should be human-friendly and be easily
+      understood by network operators.  DSL should be directly used by
+      the system.
+
+   o  Privilege control
+
+      Every application or user is authorized within a specific network
+      domain, which can be physical or virtual.  While different network
+      domains are isolated without impact, the application or user may
+      have access to all the resource and capabilities within its
+      domain.  The user perception of the network does not have to be
+      the same as the network operators.  The NBI language works on the
+      user's view so the users can create topologies based on the
+      resources the network-operators allow them to have.
+
+   o  Declarative style
+
+      As described above, the NBI language is designed to help defining
+      service requirement to network, detailed configurations and
+      instructions performed by network devices are opaque to network
+      operators.  So the NBI language should be declarative rather than
+      imperative.
+
+
+
+
+
+
+
+
+Xia, et al.              Expires April 16, 2016                 [Page 4]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+4.  Related work
+
+   YANG [RFC6020] is a data modeling language used to model
+   configuration and state data manipulated by the Network Configuration
+   Protocol (NETCONF) [RFC6241], NETCONF remote procedure calls, and
+   NETCONF notifications.
+
+   UML (Unified Modeling Language) is a powerful modeling language,
+   which is domain agnostic.  YANG and UML all focus on syntax
+   specification which formulate grammatical structure of NBI language,
+   however, they do not have the ability to express users' real
+   semantics.  NBI language should facilitate users to express their own
+   intent explicitly, instead of general complying with grammar syntax.
+   So YANG and UML is appropriate to describe the model behind the NBI
+   language not the NBI itself.
+
+   With the emergence of the SDN concept, it is a consensus to simplify
+   the network operation, which leads to many cutting-edge explorations
+   in the academic area.
+
+   Nick McKeown from Stanford University proposed the SFNet [TSFNet],
+   which translated the high level network demand to the underlying
+   controller interfaces.  By concealing the low level network details,
+   the controller simplified the operation of resource, flow, and
+   information for applications.  The SFNet is used for the SDN
+   architecture design, and does not go into the NBI design.
+
+   Jennifer Rexford from Princeton University designed the Frenetic
+   [Frenetic] based on the OpenFlow protocol.  It is an advanced
+   language for flow programming, and systematically defines the
+   operating model and mode for the flow.  However, the network
+   requirement from the service is not only the flow operations, but
+   also includes operations of resource, service conditions, and service
+   logic.
+
+   In the book [PBNM], John Strassner defined the policy concept and
+   proposed the formal description for network operations by using the
+   policy.  The method for querying network information is absent in the
+   book.  Virtual tenant network and operations to the tenant network
+   are not considered.
+
+   All these investigations direct to the future SDN that use simple and
+   intuitive interfaces to describe the network demands without complex
+   programming.
+
+
+
+
+
+
+
+Xia, et al.              Expires April 16, 2016                 [Page 5]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+5.  The NEMO Language Specifications
+
+   NEMO language is a domain specific language (DSL) based on
+   abstraction of network models and conclusion of operation patterns.
+   It provides NBI fashion in the form of language.  Instead of tons of
+   abstruse APIs, with limited number of key words and expressions, NEMO
+   language enables network users/applications to describe their demands
+   for network resources, services and logical operations in an
+   intuitive way.  And finally the NEMO language description can be
+   explained and executed by a language engine.
+
+5.1.  Network Model of the NEMO Language
+
+   Behind the NEMO language, there is a set of basic network models
+   abstracting the network demands from the top down according to the
+   service requirement.  Those demands can be divided into two types:
+   the demand for network resources and the demands for network
+   behaviors.
+
+   The network resource is composed of three kinds of entities:
+   CustomerFacingNode(CFN),Connection and ServiceFlow.  Each entity contains
+   property and statistic information.  With a globally unique identifier,
+   the network entity is the basic object for operation.  Users can
+   construct their own topology or network traffic arbitrarily with these
+   basic objects without considering about real physical topology.
+   In addition, NEMO Engine also has the ability of obtaining available
+   resources automatically as operation objects when users don't define them.
+
+   o  CustomerFacingNode model: describes the entity with the capability of packet
+      processing.  According to the functionality, there are two types
+      of CustomerFacingNode.
+
+      *  The function CFN (FN) provides network services or forwarding
+         with user concern, such as, firewall, load balance, vrouter,
+         etc.
+
+      *  The business CFN (BN) describes a set of network elements and
+         their connections, such as subnet, autonomous system, and
+         internet.  It conceals the internal topology and exposes
+         properties as one entity.  It also enables iteration, i.e., a
+         network entity may include other network entities.
+
+   o  Connection model: describes the connectivity network resource
+      between CustomerFacingNode entities.  With Connection model, user
+	  could apply for link resources between CustomerFacingNodes and user
+	  can assign specific bandwidth for them.  Connection constructs
+	  the foundation of communication, namely, the necessary condition for
+	  communications between CustomerFacingNodes is there are available
+	  resources between them.  By default, the communication is allowed if there
+
+
+
+Xia, et al.              Expires April 16, 2016                 [Page 6]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+      are direct connections between them.  The Connection is not limited
+	  to the connectivity between single entity and single entity, but it
+	  can also express the connectivity between single entity and multiply
+      entities, or multiply entities and multiply entities.
+
+   o  ServiceFlow model: describes a sequence of packets with certain common
+      characters, such as source/destination IP address, port, and
+      protocol.  From the northbound perspective, service flow is the special
+      traffic with user concern, which may be per device or across many
+      devices.  So the service flow characters also include ingress/egress CFN,
+      and so on.  The ServiceFlow model together with the associated operations
+      describe reachability of specific traffic between CustomerFacingNodes in
+	  the virtual network, which is different from the connection resource
+      between CustomerFacingNodes.
+
+   Network behavior includes the information aquisition and the control
+   operations.
+
+   The NEMO language provides two methods to get the network information
+   for users.
+
+   o  Query: a synchronous mode to get the information, i.e., one can
+      get the response when a request is sent out.
+
+   o  Notification: an asynchronous mode to get the information, i.e.,
+      with one request, one or multiple responses will be sent to the
+      subscriber automatically whenever trigger conditions meet.
+
+   The NEMO language uses operations to control the network.
+
+   o  Operation: control the behavior of specific entities by APP, such
+      as ServiceFlow operation, CustomerFacingNode operation.  All the
+	  operations follow the same pattern "when <condition>, do <action>,
+	  with <constraint>", and can be applied to any entity.  And some of
+	  operation elements can be omitted according to users' requirement.
+	  Operation has the similar meaning with policy in some sense which
+	  also emphasizes the dynamic adjustment of objects.
+
+5.2.  Notation
+
+   The syntactic notation used in this specification is an extended
+   version of BNF ("Backus Naur Form" or "Backus Normal Form").  In BNF,
+   each syntactic element of the language is defined by means of a
+   production rule.  This defines the element in terms of a formula
+   consisting of the characters, character strings, and syntactic
+   elements that can be used to form an instance of it.  The version of
+   BNF used in this specification makes use of the following symbols:
+
+
+
+Xia, et al.              Expires April 16, 2016                 [Page 7]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+      < >
+
+   Angle brackets delimit character strings that are the names of
+   syntactic elements.
+
+      ::=
+
+   The definition operator.  This is used in a production rule to
+   separate the element defined by the rule from its definition.  The
+   element being defined appears to the left of the operator and the
+   formula that defines the element appears to the right.
+
+      [ ]
+
+   Square brackets indicate optional elements in a formula.  The portion
+   of the formula within the brackets may be explicitly specified or may
+   be omitted.
+
+      { }
+
+   Braces group elements in a formula.  The portion of the formula
+   within the braces shall be explicitly specified.
+
+      |
+
+   The alternative operator.  The vertical bar indicates that the
+   portion of the formula following the bar is an alternative to the
+   portion preceding the bar.  If the vertical bar appears at a position
+   where it is not enclosed in braces or square brackets, it specifies a
+   complete alternative for the element defined by the production rule.
+   If the vertical bar appears in a portion of a formula enclosed in
+   braces or square brackets, it specifies alternatives for the contents
+   of the innermost pair of such braces or brackets.
+
+      !!
+
+   Introduces ordinary English text.  This is used when the definition
+   of a syntactic element is not expressed in BNF.
+
+5.3.  NEMO Language Overview
+
+   NEMO language provides 5 classes of commands: model definition,
+   resource access, behavior, connection management, transaction to
+   facilitate the user intent description.
+
+
+
+
+
+
+
+Xia, et al.              Expires April 16, 2016                 [Page 8]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+ <NEMO_cmd> := <model_definition_cmd> | <resource_access_cmd> |
+               <behavior_cmd>
+ <model_definition_cmd> := <cfn_definition> | <connection_definition> |
+                           <action_definition> | <model_description>
+ <resource_access_cmd> := <cfn_create> | <cfn_import> |<cfn_update> |
+                          <cfn_del> | <connection_create> |
+                          <connection_update> | <connection_del> |
+                          <serviceflow_create> | <serviceflow_update> |
+						  <serviceflow_del>
+ <behavior_cmd> := <query_cmd> | <operation_create> | <operation_update>
+                   | <operation_del> | <notification_create> |
+                   <notification_update> | <notification_del>
+ <transaction_cmd> := <transaction_begin> | <transaction _end>
+
+   NEMO language provides limited number of key words to enables network
+   users/applications to describe their intent.  The key words supported
+   by the language are as follows:
+
+ <key_word> := Boolean | Integer | String | Date | UUID | EthAddr |
+               IPPrefix | CFNModel | ConnectionModel | ServiceFlowModel |
+               ActionModel | Description | Porperty | CFN  | Connection|
+               ServiceFlow | EndNodes | Type | Contain | Match | List |
+               Range| Query | From | Notification | Listener |
+               Operation | Target | Priority | Condition | Action |
+               Transaction | Commit | CREATE | IMPORT | UPDATE | DELETE
+
+5.4.  Model Definition
+
+5.4.1.  Data Types
+
+   NEMO language provides several build-in data types:
+
+   Boolean  This data type is used for simple flags that track true/
+      false conditions.  There are only two possible values: true and
+      false.  The Boolean literal is represented by the token <boolean>.
+
+   Integer  A number with an integer value, within the range from
+      -(2^63) to +(2^63)-1.  The Integer literal is represented by the
+      token <integer>.
+
+   String  A sequence of characters.  The string is always in the
+      quotation marks.  The String literal is represented by the token
+      <string>.
+
+   Date  A string in the format yyyy-mm-dd hh:mm:ss, or yyyy-mm-dd, or
+      hh:mm:ss.  The Date literal is represented by the token <date>.
+
+   UUID  A string in the form of Universally Unique IDentifier
+      [RFC4122], e.g.  "6ba7b814-9dad-11d1-80b4-00c04fd430c8".  A
+
+
+
+Xia, et al.              Expires April 16, 2016                 [Page 9]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+      typical usage of the UUID is to identify network entities,
+      policies, actions and so on.  The UUID literal is represented by
+      the token <UUID>.
+
+   EthAddr  A string in the form of MAC address, e.g.
+      "00:00:00:00:00:01".  The EthAddr literal is represented by the
+      token <eth_addr>.
+
+   IPPrefix  A string in the form of IP address, e.g.  "192.0.2.1".  The
+      mask can be used in the IP address description, e.g.
+      "192.0.2.0/24".  The IPPrefix literal is represented by the token
+      <ip_prefix>.
+
+   The token <data_type> can be defined as follows:
+
+   <data_type> := Boolean | Integer | String | Date | UUID |
+                  EthAddr | IPPrefix
+
+   And a generic <data_type> literal is represented by the token <value>
+
+   <value> := <boolean> | <integer> | <string> | <date> | <UUID> |
+              <eth_addr> | <ip_ prefix>
+
+5.4.2.  Model Definition and Description Statement
+
+   In addition to default build-in network models, NEMO language
+   facilitates users to define new model types.
+
+   The token <naming> is a string that MUST start with a letter and
+   followed by any number of letters and digits.  More specific naming
+   can be defined as follows:
+
+   <cfn_type> := <naming> !!type name of the CustomerFacingNode model
+   <connection_type> := <naming> !!type name of the connection model
+   <serviceflow_type> := <naming> !!type name of the ServiceFlow model
+   <entity_type> := <cfn_type> | <connection_type> | <serviceflow_type>
+   <action_type> := <naming> !!type name of the action model
+   <model_type> := <entity_type> | <action_type>
+   <property_name> := <naming> !!name of the property in a model
+
+   The <cfn_definition> statement is used to create a CustomerFacingNode
+   model:
+
+   <cfn_definition> := CFNModel <cfn_type>
+                        Property { <data_type> : <property_name> };
+
+   The CFNModel specifies a new CustomerFacingNode type.
+
+
+
+
+
+Xia, et al.              Expires April 16, 2016                [Page 10]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+   The Property is followed by a list of "<data_type> : <property_name>"
+   pairs to specify properties for the new CustomerFacingNode type.  Since
+   belonging network is the intrinsic property for a CustomerFacingNode
+   model, there is no need to redefine the belonging network in the property
+   list.
+
+   Example:
+
+   CFNModel "DPI" Property String : "name", Boolean : "is_enable"; The
+   statement generates a new CustomerFacingNode model named DPI with two
+   properties, "name" and "is_enable".
+
+   The <connection_definition> statement is used to create a connection
+   model:
+
+  <connection_definition> := ConnectionModel <connection_type>
+                             Property { <data_type> : <property_name> };
+
+   The ConnectionModel specifies a new connection type.
+
+   The Property is followed by a list of "<data_type> : <property_name>"
+   pairs to specify properties for the new connection type.  Since end
+   CFNs are intrinsic properties for a connection model, there is no
+   need to redefine the end CustomerFacingNode in the property list.
+
+   The <serviceflow_definition> statement is used to create a ServiceFlow model:
+
+   <serviceflow_definition> := ServiceFlowModel <serviceflow_type>
+                        Property { <data_type> : <property_name> };
+
+   The ServiceFlowModel specifies a new ServiceFlow type.
+
+   The Property is followed by a list of "<data_type> : <property_name>"
+   pairs to specify fields for the new ServiceFlow type.
+   
+   The<action_definition> statement is used to create an action model:
+
+   <action_definition> := ActionModel <action_type>
+                         Property  { <data_type> : <property_name> };
+
+   The ActionModel specifies a new action type.
+
+   The Property is followed by a list of "<data_type> : <property_name>"
+   pairs to specify properties for the new action.
+
+   NEMO language also supports querying the description of a defined
+   model by using the <model_description> statement:
+
+   <model_description> := Description <model_type>;
+
+
+
+
+Xia, et al.              Expires April 16, 2016                [Page 11]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+   The keyword Description is followed by a model type name.  The
+   description of the queried model will return from the language
+   engine.
+
+5.5.  Resource Access Statements
+
+   In NEMO language, each resource entity instance is identified by a
+   <naming> which MUST be unique.  We use the following token to
+   indicate the identifier given to the resource entity instance.
+
+ <cfn_id> := <naming> !! name to identify the CustomerFacingNode instance
+ <connection_id> := <naming> !! name to identify the connection instance
+ <serviceflow_id> := <naming> !! name to identify the ServiceFlow instance
+ <entity_id> := <cfn_id>|<connection_id>|<serviceflow_id>
+
+5.5.1.  CustomerFacingNode Operations
+
+   NEMO model defines basic method for the CustomerFacingNode instances,
+   and uses intuitive keyword to indicate the specific method.  User could
+   create, import, update and delete a CustomerFacingNode instance.
+
+   The <cfn_create> statement is used to create or update a CustomerFacingNode
+   instance:
+
+   <cfn_create> := CREATE CFN <cfn_id> Type  <cfn_type>
+                           [Contain {<cfn_id>}]
+                           [Property {<property_name>: <value>}];
+
+   The <cfn_import> statement is used to import an existing external
+   CustomerFacingNode instance:
+
+   <cfn_import> := IMPORT CFN <cfn_id> Type  <cfn_type>
+                           [Contain {<cfn_id>}]
+                           [Property {<property_name>: <value>}];
+
+   The <cfn_update> statement is used to update an existing CustomerFacingNode
+   instance:
+
+   <cfn_update> := UPDATE CFN <cfn_id>
+                           [Contain {<cfn_id>}]
+                           [Property {<property_name>: <value>}];
+
+   In all the above three statements, the CFN is followed by a user
+   specified <cfn_id>.  According to the method, system will take
+   corresponding action for the CustomerFacingNode instance.  If the method
+   is CREATE or IMPORT and the <cfn_id> is new in the system, a new CustomerFacingNode
+   will be created automatically.  If the method is UPDATE and the <cfn_id>
+
+
+
+
+Xia, et al.              Expires April 16, 2016                [Page 12]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+   exists in the system, the corresponding CustomerFacingNode identified by <cfn_id>
+   will be updated with the following information.
+
+   The Type specifies the type of the CustomerFacingNode to operate.
+
+   The Contain is an optional keyword specifying the internal CustomerFacingNodes
+   which are included in this CustomerFacingNode instance.
+
+   The Property is an optional keyword followed by a list of
+   "<property_name>: <value>" pairs.  Multiple "<property_name>:
+   <value>" pairs are separated by commas.  The <property_name> MUST be
+   selected from the property definition of the corresponding CustomerFacingNode
+   definition.
+
+   An example of creating a CustomerFacingNode instance is as follows:
+
+   CREATE CFN Headquarter
+          Type   l3group
+          Contain   LN-1
+          Property  location : "Beijing";
+
+   The statement creates a layer 3 virtual network which contains a
+   predefined CustomerFacingNode "LN-1".  The l3 virtual network is located in
+   Beijing.
+
+   The <cfn_del> statement is used to delete a CustomerFacingNode instance:
+
+   <cfn_del> := DELETE CFN <cfn_id>;
+
+   The DELETE CFN is to delete a CustomerFacingNode in user's network.
+
+5.5.2.  Connection Operations
+
+   NEMO model defines basic method for the connection instances, and use
+   intuitive keyword to indicate the specific method.  User could
+   create, update and delete a connection instance.
+
+   The <connection_create> statement is used to create a connection:
+
+   <connection_create> := CREATE Connection <connection_id>
+                                 Type <connection_type>
+                                 EndNodes <cfn_id>, <cfn_id>
+                                 [Property {<property_name>: <value>}];
+
+   The <connection_update> statement is used to update a connection:
+
+
+
+
+
+
+Xia, et al.              Expires April 16, 2016                [Page 13]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+   <connection_create> := UPDATE Connection <connection_id>
+                                 [EndNodes {<cfn_id>}, {<cfn_id>}]
+                                 [Property {<property_name>: <value>}];
+
+   The Connection is followed by a user specified <connection_id>.  If
+   the method is CREATE and the <connection_id> is new in the system, a
+   new connection will be created automatically.  If the method is
+   UPDATE and the <connection_id> exists in the system, the
+   corresponding connection identified by the <connection_id> will be
+   updated with the following information.
+
+   The Type specifies the type of the connection to use.  For example
+   there will be point to point connection, or point to multiple points
+   connection.
+
+   The EndNodes specifies the end CustomerFacingNodes of a connection.  For each
+   connection there will be left CustomerFacingNodes and right CustomerFacingNodes
+   stand for the two ends.
+
+   The Property is an optional keyword followed by a list of
+   "<property_name>: <value>" pairs.  Multiple "<property_name>:
+   <value>" pairs are separated by commas.  The <property_name> MUST be
+   selected from the property definition of the corresponding connection
+   definition.
+
+   An example of creating a connection instance is as follows:
+
+   CREATE Connection connection-1
+          Type p2p
+          EndNodes   S1, S2
+          Property   bandwidth : 1000, delay : 40;
+
+   The statement creates a connection between two CustomerFacingNodes, and sets the
+   connection property.
+
+   The <connection_del> statement is used to delete a connection
+   instance:
+
+   <connection_del> := DELETE Connection <connection_id>;
+
+   The DELETE Connection is to delete a connection in user's network.
+
+5.5.3.  ServiceFlow Operations
+
+   NEMO model defines basic method for the ServiceFlow instances, and use
+   intuitive keyword to indicate the specific method.  User could
+   create, update and delete a ServiceFlow instance.
+
+
+
+
+Xia, et al.              Expires April 16, 2016                [Page 14]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+   The <serviceflow_create> statement is used to create a ServiceFlow:
+
+   <serviceflow_create> := CREATE ServiceFlow <serviceflow_id>
+                           Match {<property_name>: <value>
+                                 | Range (<value>, <value>)
+                                 | List({<value>})}
+
+   The <serviceflow_update> statement is used to update a ServiceFlow:
+
+   <serviceflow_update> := UPDATE ServiceFlow <serviceflow_id>
+                           Match {<property_name>: <value>
+                                 | Range (<value>, <value>)
+                                 | List({<value>})}
+
+   The ServiceFlow is followed by a user defined <serviceflow_id>.  If the method is
+   CREATE and the <serviceflow_id> is new in the system, a new ServiceFlow identifier
+   will be created automatically.  If the method is UPDATE and the
+   <serviceflow_id> exists in the system, the corresponding ServiceFlow identified by
+   the <serviceflow_id> will be updated with the following information.
+
+   The Match specifies a ServiceFlow by indicate match fields.  NEMO language
+   also provides two keywords to assist the expression of values:
+
+   o  The List is used to store a collection of data with the same data
+      type.
+
+   o  The Range is used to express a range of values.
+
+   An example of creating a ServiceFlow instance is as follows:
+
+   CREATE ServiceFlow  flow-1
+          Match src_ip : Range ("192.0.2.1", "192.0.2.243");
+
+   The statement describes a ServiceFlow with the source IP address ranging
+   from 192.0.2.1 to 192.0.2.243.
+
+   The <serviceflow_del> statement is used to delete a ServiceFlow instance:
+
+   <serviceflow_del> := DELETE ServiceFlow <serviceflow_id>;
+
+   The DELETE ServiceFlow is to delete a ServiceFlow in user's network.
+
+5.6.  Behavior Statements
+
+
+
+
+
+
+
+
+Xia, et al.              Expires April 16, 2016                [Page 15]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+5.6.1.  Query Behavior
+
+   The query statement is to retrieve selected data from specified model
+   object.
+
+   The <query_statement> generate a query:
+
+   <query_cmd> := Query {<property_name>}
+                  From {<entity_id>|<operation_id>}
+
+   The Query is followed by one or more <property_name>s which are
+   defined properties of the object to be queried.
+
+   The From is followed by the one or more queried objects.  NENO
+   language support query operation to network entities and the policy.
+
+5.6.2.  Operation Behavior
+
+   NEMO model defines basic method for the operation instances, and use
+   intuitive keyword to indicate the specific method.  User could
+   create, update and delete a operation instance.
+
+   In NEMO language, each operation instance is identified by a <naming>
+   which MUST be unique.
+
+   <operation_id> := <naming> !! name to identify the operation instance
+
+   Create and update a policy
+
+   <operation_create> := CREATE Operation <operation_id>
+                         Target <entity_id>
+                         Priority <integer>
+                         [Condition <expression>]
+                         Action {<action_type> : {<value>}};
+
+   <operation_update> := UPDATE Operation <operation_id>
+                         [Target <entity_id>]
+                         [Priority <integer>]
+                         [Condition <expression>]
+                         [Action {<action_type> : {<value>}}];
+
+   The Operation is followed by a user defined <operation_id>.  If the
+   method is CREATE and the <operation_id> is new in the system, a new
+   operation will be created automatically.  If the method is UPDATE and
+   the <operation_id> exists in the system, the corresponding operation
+   identified by the<operation_id> will be updated with the following
+   information.
+
+
+
+
+Xia, et al.              Expires April 16, 2016                [Page 16]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+   The Target specifies the entity to which the operation will apply.
+
+   The Priority specifies the globe priority of the operation in the
+   tenant name space.  The <value> with lower number has a higher
+   priority, i.e. priority 0 holds the highest priority.
+
+   The Condition is an optional keyword follow by an expression.  It
+   tells your program to execute the following actions only if a
+   particular test described by the expression evaluates to true.  And
+   users also can define which objects won't need to execute these
+   actions with Constraint.
+
+   A NEMO language expression is a construct made up of variables,
+   operators, and method invocations, which are constructed according to
+   the syntax of the language and evaluates to a single value.  NEMO
+   language supports many operators to facilitate the construction of
+   expressions.  Assume variable A holds 10 and variable B holds 0,
+   then:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Xia, et al.              Expires April 16, 2016                [Page 17]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+   +----------+----------------------------------------------+---------+
+   | Operator |                                  Description | Example |
+   +----------+----------------------------------------------+---------+
+   | &&       |     Called Logical AND operator. If both the | (A &&   |
+   |          |    operands are non-zero, then the condition | B) is   |
+   |          |                                becomes true. | false.  |
+   | ||       |    Called Logical OR Operator. If any of the | (A ||   |
+   |          |          two operands are non-zero, then the | B) is   |
+   |          |                      condition becomes true. | true.   |
+   | !        | Called Logical NOT Operator. Use to reverses | !(A &&  |
+   |          |       the logical state of its operand. If a | B) is   |
+   |          |  condition is true then Logical NOT operator | true.   |
+   |          |                             will make false. |         |
+   | ==       |     Checks if the values of two operands are | (A ==   |
+   |          |  equal or not, if yes then condition becomes | B) is   |
+   |          |                                        true. | not     |
+   |          |                                              | true.   |
+   | !=       |     Checks if the values of two operands are | (A !=   |
+   |          |   equal or not, if values are not equal then | B) is   |
+   |          |                      condition becomes true. | true.   |
+   | >        |       Checks if the value of left operand is | (A > B) |
+   |          |  greater than the value of right operand, if | is not  |
+   |          |             yes then condition becomes true. | true.   |
+   | >=       |       Checks if the value of left operand is | (A >=   |
+   |          |  greater than or equal to the value of right | B) is   |
+   |          | operand, if yes then condition becomes true. | not     |
+   |          |                                              | true.   |
+   | <        |  Checks if the value of left operand is less | (A < B) |
+   |          | than the value of right operand, if yes then | is      |
+   |          |                      condition becomes true. | true.   |
+   | <=       |  Checks if the value of left operand is less | (A <=   |
+   |          | than or equal to the value of right operand, | B) is   |
+   |          |          if yes then condition becomes true. | true.   |
+   +----------+----------------------------------------------+---------+
+
+   The Action specifies the execution when conditions meet.
+
+   An example of creating anoperation is as follows:
+
+   CREATE Operation operation-1
+           Target flow-1
+           Priority 100
+           Condition (time>"18:00") || (time<"21:00")
+           Action  redirect : "backup_connection";
+
+   The statement creates an operation which indicates the service flow to go
+   through backup connection from 18:00 to 21:00.
+
+
+
+
+Xia, et al.              Expires April 16, 2016                [Page 18]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+   Delete an operation:
+
+   <operation_del> := DELETE Operation <operation_id>;
+
+   The DELETE Operation is to delete a policy in user's network.
+
+5.6.3.  Notification Behavior
+
+   In NEMO language, each notification instance is identified by a
+   <naming>
+
+   <notification_id> := <naming> !! name to identify the notification
+                        instance
+
+   Create and update a notification
+
+   <notification_create> := CREATE Notification <notification_id>
+                                   [(Query {<property_name>}
+                                     From {<entity_id>})]
+                                   Condition {<expression>}
+                                   Listener <callbackfunc>;
+
+   <notification_update> := UPDATE Notification <notification_id>
+                                   [(Query {<property_name>}
+                                     From {<entity_id>})]
+                                   Condition {<expression>}
+                                   Listener <callbackfunc>;
+
+   The Notification is followed by a user defined <notification_id>.  If
+   the method is CREATE and the <notification_id> is new in the system,
+   a new notification will be created automatically.  If the method is
+   UPDATE and the <notification_id> exists in the system, the
+   corresponding notification identified by the<notification_id> will be
+   updated with the following information.
+
+   The Query clause is nested in the notification statement to indicate
+   the information acquisition.
+
+   The Condition clause is the same as in operation statement, which
+   triggers the notification.
+
+   The Listener specifies the callback function that is used to process
+   the notification.
+
+   Delete a notification:
+
+   <notification_del> := DELETE Notification <notification_id>;
+
+
+
+
+Xia, et al.              Expires April 16, 2016                [Page 19]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+   The DELETE Notification is to delete a notification in user's
+   network.
+
+5.7.  Transaction Statements
+
+   <transaction_begin> := Transaction
+   <transaction_end> := Commit
+
+   The keywords Transaction and Commit are used to tag begin and end of
+   a transaction.  The code between the two key words will be
+   interpreted as a transaction and executed by the NEMO language
+   engine.
+
+6.  The NEMO Language Examples
+
+   An enterprise with geographically distributed headquarter and branch
+   sites has the requirement to dynamically balance the backup traffic.
+
+   In order to implement this scenario, the virtual WAN tenant creates
+   two logicnw, and generates two connections with different SLA to
+   carry diverse service flows.  One connection has 100M bandwidth with
+   less than 50ms delay, which is used for normal traffic.  And the
+   other connection has 40G bandwidth with less than 400ms delay, which
+   is used for backup traffic after work (from 19:00 to 23:00).  With
+   self defined service flow operations, the tenant can manage the connection
+   load balancing conveniently.
+
+                           Real-time Connection
+                          +--------------------+
+                 192.0.2.0/24                  198.51.100.0/24
+                 +---------+                  +-------------+
+                 | Branch  |------------------| Headquarter |
+                 +---------+                  +-------------+
+                          |                    |
+                          +--------------------+
+                           Broadband Connection
+
+   The detailed operation and code are shown as follows.
+
+   o  Step1: Create two virtual logicnw CustomerFacingNodes in the WAN
+
+   CREATE CFN Branch
+          Type  l2group
+          Property ipv4Prefix : 192.0.2.0/24;
+
+   CREATE CFN Headquarter
+          Type l2group
+          Property ipv4Prefix : 198.51.100.0/24;
+
+
+
+Xia, et al.              Expires April 16, 2016                [Page 20]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+   o  Step2: Connect the two virtual CustomerFacingNodes with two virtual connections
+      with different SLA.
+
+   CREATE Connection broadband_connection
+          EndNodes Branch, Headquater
+          Property bandwidth : 40000, delay : 400;
+
+   CREATE Connection realtime_connection
+          EndNodes Branch, Headquater
+          Property bandwidth : 100, delay : 50;
+
+   o  Step3: Indicate the service flow to be operated.
+
+   CREATE ServiceFlow flow_all
+          Match src_ip : "192.0.2.0/24", dst_ip: "198.51.100.0/24";
+
+   CREATE ServiceFlow flow_backup
+          Match src_ip : "192.0.2.0/24", dst_ip: "198.51.100.0/24",
+                port: 55555;
+
+   o  Step4: Apply policies to corresponding service flows.
+
+   P1:
+   CREATE Operation operation4all
+          Target flow_all
+          Priority 200
+          Action  redirect: "realtime_connection";
+   P2:
+   CREATE Operation operation4backup
+           Target flow_backup
+           Priority 100
+           Condition (time>"19:00:00") || (time<"23:00:00")
+           Action  redirect: "broadband_connection";
+
+7.  Security Considerations
+
+   Because the network customers are allowed to customize their own
+   services, they may bring potentially big impacts to a running IP
+   network.  A strong user authentication mechanism is needed for the
+   northbound interface of the SDN controller.  User authorization
+   should be carefully managed by the network administrator to avoid any
+   dangerous operations and prevent any abuse of network resources.
+
+8.  IANA Considerations
+
+   This memo includes no request to IANA.
+
+
+
+
+
+Xia, et al.              Expires April 16, 2016                [Page 21]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+9.  Acknowledgements
+
+   The authors would like to thanks the valuable comments made by Wei
+   Cao, Xiaofei Xu, Fuyou Miao, Yali Zhang and Wenyang Lei.
+
+   This document was produced using the xml2rfc tool [RFC2629].
+
+10.  Informative References
+
+   [Frenetic]
+              Foster, N., Harrison, R., Freedman, M., Monsanto, C.,
+              Rexford, J., Story, A., and D. Walker, "Frenetic: A
+              Network Programming Languages, ICFP' 11".
+
+   [I-D.xia-sdnrg-service-description-language]
+              Xia, Y., Jiang, S., and S. Hares, "Requirements for a
+              Service Description Language and Design Considerations",
+              draft-xia-sdnrg-service-description-language-02 (work in
+              progress), May 2015.
+
+   [PBNM]     Strassner, J., "Policy-Based Network Management: Solutions
+              for the Next Generation, Morgan Kaufmann Publishers Inc.
+              San Francisco, CA, USA.", 2003.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <http://www.rfc-editor.org/info/rfc2119>.
+
+   [RFC2629]  Rose, M., "Writing I-Ds and RFCs using XML", RFC 2629,
+              DOI 10.17487/RFC2629, June 1999,
+              <http://www.rfc-editor.org/info/rfc2629>.
+
+   [RFC4122]  Leach, P., Mealling, M., and R. Salz, "A Universally
+              Unique IDentifier (UUID) URN Namespace", RFC 4122,
+              DOI 10.17487/RFC4122, July 2005,
+              <http://www.rfc-editor.org/info/rfc4122>.
+
+   [RFC6020]  Bjorklund, M., Ed., "YANG - A Data Modeling Language for
+              the Network Configuration Protocol (NETCONF)", RFC 6020,
+              DOI 10.17487/RFC6020, October 2010,
+              <http://www.rfc-editor.org/info/rfc6020>.
+
+   [RFC6241]  Enns, R., Ed., Bjorklund, M., Ed., Schoenwaelder, J., Ed.,
+              and A. Bierman, Ed., "Network Configuration Protocol
+              (NETCONF)", RFC 6241, DOI 10.17487/RFC6241, June 2011,
+              <http://www.rfc-editor.org/info/rfc6241>.
+
+
+
+
+Xia, et al.              Expires April 16, 2016                [Page 22]
+
+Internet-Draft          NEtwork MOdeling Language           October 2015
+
+
+   [TSFNet]   Yap, K., Huang, T., Dodson, B., Lam, M., and N. McKeown,
+              "Towards Software-Friendly Networks, APSys 2010, pp:49-54,
+              2010, New Delhi, India.".
+
+Authors' Addresses
+
+   Yinben Xia (editor)
+   Huawei Technologies Co., Ltd
+   Q14, Huawei Campus, No.156 Beiqing Road
+   Hai-Dian District, Beijing, 100095
+   P.R. China
+
+   Email: xiayinben@huawei.com
+
+
+   Sheng Jiang (editor)
+   Huawei Technologies Co., Ltd
+   Q14, Huawei Campus, No.156 Beiqing Road
+   Hai-Dian District, Beijing, 100095
+   P.R. China
+
+   Email: jiangsheng@huawei.com
+
+
+   Tianran Zhou (editor)
+   Huawei Technologies Co., Ltd
+   Q14, Huawei Campus, No.156 Beiqing Road
+   Hai-Dian District, Beijing, 100095
+   P.R. China
+
+   Email: zhoutianran@huawei.com
+
+
+   Susan Hares
+   Huawei Technologies Co., Ltd
+   7453 Hickory Hill
+   Saline, CA  48176
+   USA
+
+   Email: shares@ndzh.com
+   
+   Yali Zhang (editor)
+   Huawei Technologies Co., Ltd
+   Q14, Huawei Campus, No.156 Beiqing Road
+   Hai-Dian District, Beijing, 100095
+   P.R. China
+
+   Email: zhangyali369@huawei.com
+
+
+
+
+
+
+
+
+
+
+
+Xia, et al.              Expires April 16, 2016                [Page 23]
